@@ -1,0 +1,71 @@
+EJERCICIO JDBC
+
+
+En este ejercicio he creado un proyecto maven que agrupa todas las operaciones vistas en el tema 2 de jdbc, estructurado con un patrón MVC, siendo la consola el 
+componente que actúa como vista. 
+
+** Clases ** 
+
+La clase Controller se encargará de mostrar el menú con las opciones y gestionar las respuestas del usuario mediante funciones propias encargadas de leer y validar los datos introducidos por el usuario, así como realizar llamadas a la clase Model. 
+
+La clase Model será la encargada de realizar todas las operaciones relacionadas con la base de datos, incluyendo el inicio y el cierre de la conexión.
+
+La clase Alumno es un 'POJO', teniendo como campos el dni, nombre y nota del alumno.
+
+La clase Main será la que contenga el método main, y se encargará de llamar al método estático 'iniciaConexion' de Model, así como instanciar un 
+objeto Controller y llamar al método 'inicializa', el cuál llamará al método 'opciones' y se pondrá en marcha el bucle del programa.
+
+** Aspectos a tener en cuenta ** 
+
+- El dni actuará como clave primaria en la base de datos, y para asegurarme que no se repita ninguno he creado el método 'buscaPorDni' en Model,
+que comprobará la existencia del dni pasado cómo parámetro.
+
+- He incluido la opción de exportar, que permite al usuario generar ficheros xml, txt y json con los alumnos registrados de la base de datos.
+
+- Hago uso de Statement, PreparedStatement, CallableStatement y ResultSet, incluyendo también una transacción.
+
+- Incluyo todos los elementos 'DML'(SELECT, INSERT, UPDATE y DELETE) con y sin claúsula WHERE.
+
+- He optado por 'lanzar' todas las excepciones al método 'iniciaConexión', que será el que las capture contemplando dos escenarios, excepción con
+ la base de datos o bien, cualquier otro tipo de excepción. En ambos casos lanzo un primer mensaje sencillo indicando si se debe a la BBDD o no, junto con la pila generada por la excepción para ofrecer más detalles.
+ 
+- Para la opción de exportar, mi idea ha sido generar los ficheros en el Escritorio y el programa, al crear los archivos, lanzará un mensaje diciendo que el archivo en cuestión se ha creado en el Escritorio. La ruta que viene establecida es la del escritorio de mi equipo, por lo que 
+deberás modificarla.
+
+- En mi caso, me conecto a la base de datos a través de "jdbc:postgres://localhost/alumnosdb". Te lo pongo por si tienes que modificarla.
+
+- Tanto la url como la ruta de generación de ficheros están como atributos de la clase Model, así como el nombre de la tabla.
+
+- En el fichero pom.xml están las dos dependencias necesarias para el programa, postgresql y gson, la última necesaria para generar los ficheros json.
+
+** CREACIÓN DE BASE DE DATOS, TABLA Y FUNCIÓN **
+
+Te incluyo a continuación los scripts que necesitarás para poner en funcionamiento el programa.
+ 
+// CREACIÓN DE BASE DE DATOS
+ 
+CREATE DATABASE alumnosdb;
+ 
+// CREACIÓN DE TABLA 'alumnos'
+
+CREATE TABLE public.alumnos (
+	dni varchar NOT NULL,
+	nombre varchar NULL,
+	nota varchar NULL,
+	CONSTRAINT alumno_pk PRIMARY KEY (dni)
+);
+
+// CREACIÓN DE FUNCIÓN 'cuentaAlumnos()'
+
+CREATE OR REPLACE FUNCTION public.cuentaalumnos()
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+declare
+   contador integer;
+	BEGIN
+		select count(*) into contador from alumnos;
+        return contador;
+	END;
+$function$
+;
